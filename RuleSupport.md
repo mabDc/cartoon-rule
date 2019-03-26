@@ -150,7 +150,7 @@
   + 7.3 js脚本
     - 形式为 `rule@js:js内容` 或 `rule1<js>js内容1</js>rule2<js>js内容2</js>rule3`
     - 包含 `result` 和 `baseUrl` 2个`java.lang.string`对象，`baseUrl` 为规则所在页url（非常可靠）
-    - 由于参数以对象传递，js选手使用`replace()`和`split()`和`match()`方法前需用`new String()`做类型转换，java选手不需要转换。
+    - 由于参数以对象传递，使用`replace()`和`split()`和`match()`等方法时，js语法下需用`new String()`做类型转换，java语法下不需要转换。
     - 返回值类型支持String（适用于全部）、Array（适用于5.），Array内容支持字符串、数字、对象（不能嵌套），可混用
         ```js
         ["str", 1 ,{a:"b"},{"c":2}]
