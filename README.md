@@ -1,4 +1,4 @@
 # cartoon-rule
-异次元规则支持说明
+异次元图源
 
-规则说明见文件 [RuleSupport.md](https://github.com/mabDc/cartoon-rule/blob/master/RuleSupport.md)
+规则支持速浏 [RuleSupport.md](https://github.com/mabDc/cartoon-rule/blob/master/RuleSupport.md)
