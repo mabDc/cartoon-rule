@@ -27,7 +27,8 @@
   + 规则解析顺序为 @put -> @get -> @header -> rule -> @js
   + 前三个@不能嵌套，位置任意，@js必须放在最后
   
-### JSONPath 书写说明，引用自 [(github) json-path/JsonPath](https://github.com/json-path/JsonPath)，更多细节请参考原文
+### JSONPath 书写说明
+引用自 [(github) json-path/JsonPath](https://github.com/json-path/JsonPath)，更多示例请参考原文
 >Operators
 >---------
 >
