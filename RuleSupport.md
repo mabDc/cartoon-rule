@@ -243,8 +243,8 @@
   - 规则首字符使用负号(`-`)可使列表反序
   - ~~转字符串时，列表以`"\r\n"`连接，可用`result.split("\r\n")`分割（不可靠）~~
   - 此处js返回值类型同时支持String和Array。
-  - 若返回 Array 类型，对于搜索结果列表和目录，应形如`[{name:"one",id:1,...},...]`，其他应形如`["type1","type2",...]` 或者 `["url1","url2",...]`
-  - 对于搜索结果列表和目录，若返回String类型，需用到js标签`<js>...;JSON.stringfy(list);</js>@json:$`，其他建议直接返回 Array
+  - 若返回 Array 类型，对于搜索结果列表和目录，应形如`[{name:"one",id:1,...},...]`，其他应形如`["type1","type2",...]` 或 `["url1","url2",...]`
+  - 若返回String类型，需用到js标签`<js>...;JSON.stringfy(list);</js>@json:$`，分类、下一页地址、正文建议直接返回 Array
   + 5.1 搜索结果列表(ruleSearchList)
     - 搜索结果系列规则从此列表往后写   
   + 5.2 目录列表(ruleChapterList)
