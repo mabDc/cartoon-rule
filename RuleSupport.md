@@ -2,9 +2,9 @@
 ### 从具体实现或图源写法上，分为7类
   - 1 图源描述（名称、地址、分组、登录、ua）
   - 2 搜索（发现和搜索地址）
-  - 3 url（搜索结果地址、目录地址、章节地址）
+  - 3 url（搜索结果地址、目录地址、章节地址、2个封面地址）
   - 4 字符串（2个书名、2个作者、2个最新章节、1个简介、1个章节名称）
-  - 5 列表（搜索结果列表、目录列表、2个分类、2个下一页地址）
+  - 5 列表（搜索结果列表、目录列表、2个分类、2个下一页地址、1个正文）
   - 6 图片（2个封面地址+1个正文）
   - 7 通用（连接符、正则替换、js脚本、@put、@get）
   
@@ -210,6 +210,8 @@
     - 只支持单个规则，部分漫画搜名称和搜作者用的不同搜索地址，需要做成2个图源。
     
 ### 3. url
+  - 支持相对路径或绝对路径
+  - header在此类规则下才有意义
   + 3.1 搜索结果地址(ruleSearchNoteUrl)
     - 必填
   + 3.2 目录地址(ruleChapterUrl)
@@ -220,7 +222,10 @@
     - 上述地址都支持 @header:{key1:rule1,key2:rule2}
     - 与搜索url不同，这里的 rule 支持完整规则，需要用双引号包含起来。
     - 拼接处理直接写不可靠，如有需要请使用 `@js:js内容`
-    
+  + 3.4 封面地址，2个(ruleSearchCoverUrl, ruleCoverUrl)
+    - 可空
+    - 可能需要考虑 referer
+  
 ### 4. 字符串
   - 存在空白压缩或空白折叠
   + 4.1 书名，2个(ruleSearchName, ruleBookName)
@@ -236,10 +241,12 @@
     
 ### 5. 列表
   - 规则首字符使用负号(`-`)可使列表反序
-  - 转字符串时，列表以`"\r\n"`连接，可用`result.split("\r\n")`分割
-  - 此处js返回值类型同时支持String和Array。建议用Array，若返回String类型，需用到js标签`<js>...;JSON.stringfy(list);</js>@json:$`
+  - ~~转字符串时，列表以`"\r\n"`连接，可用`result.split("\r\n")`分割（不可靠）~~
+  - 此处js返回值类型同时支持String和Array。
+  - 若返回 Array 类型，对于搜索结果列表和目录，应形如`[{name:"one",id:1,...},...]`，其他应形如`["type1","type2",...]` 或者 `["url1","url2",...]`
+  - 对于搜索结果列表和目录，若返回String类型，需用到js标签`<js>...;JSON.stringfy(list);</js>@json:$`，其他建议直接返回 Array
   + 5.1 搜索结果列表(ruleSearchList)
-    - 搜索结果系列规则从此列表往后写
+    - 搜索结果系列规则从此列表往后写   
   + 5.2 目录列表(ruleChapterList)
     - 章节名称、url规则从此列表往后写
   + 5.3 分类，2个(ruleSearchKind, ruleBookKind)
@@ -250,15 +257,23 @@
     - 依次向下一页地址发送请求，得到所有响应后开始下一步解析。
     - 需保证最后一页的规则取到内容为空，如有必要，请在规则中显式返回null。
     - js返回值类型支持字符串数组，不支持对象数组
+    - 支持相对路径或绝对路径
+    - 不支持 header
+  + 5.5 正文(ruleBookContent)
+    - 不支持相对路径，必须补全 url
+    - 支持 header
     
 ### 6. 图片 
+  - 这部分与 url 和 list 重复，这里是补充说明
   - 独有关键字：host、prePage、thisPage
   - host 固定为1.2内容
   - prePage 根据3.给出的顺序计算
   - thisPage 为规则所在页面的地址
   + 6.1 封面地址，2个(ruleSearchCoverUrl, ruleCoverUrl)
+    - 支持相对路径或绝对路径
   + 6.2 正文(ruleBookContent)
-    - 格式为rule@header:{referer:thisPage}
+    - 不支持相对路径
+    - 上述内容格式均为rule@header:{referer:thisPage}
     - header可省略，此时请求将不带referer
     
 ### 7. 通用
