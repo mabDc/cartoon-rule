@@ -10,7 +10,8 @@
   
 ### 0. 坑点
   + JSONPath 
-    - 形式 `@JSon:jsonPath` 或 `jsonPath` 或 `{$.jsonPath}`
+    - 形式 `@JSon:$.jsonPath` 或 `@JSon:jsonPath` 或 `$.jsonPath` 或 `jsonPath` 或 `{$.jsonPath}`
+    - `jsonPath` 和 `{$.jsonPath}` 未显式指定JSONPath，依赖程序的默认判断，不可靠
     - 标准规范 [goessner JSONPath - XPath for JSON](https://goessner.net/articles/JsonPath/)
     - 实现库 [(github) json-path/JsonPath](https://github.com/json-path/JsonPath)
     - 在线测试 [Jayway JsonPath Evaluator](http://jsonpath.herokuapp.com/)
