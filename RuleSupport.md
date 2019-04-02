@@ -168,19 +168,19 @@
     - 设置请求头中的User-Agent
     
 ### 2. 搜索
-  - 拥有 url 类的全部特性。这里仅给出独有的特性。
   - 该类型关键字有 searchKey 和 searchPage 。
   - searchPage 同时还支持 searchPage-1 和 searchPage+1。
   + 2.1 发现(ruleFindUrl)
     - 形式为 `name::url`
     - 多个规则用 && 或 换行符 连接
     - 规则中若不含 `searchPage` 关键字，发现中持续下拉将循环。
-    - 页数写法支持```{1, 2, 3, }```，发现中持续下拉将依次加载第一页、第二页、等。
+    - 页数写法支持`{1, 2, 3, }`，发现中持续下拉将依次加载第一页、第二页、等。
     - 若为空或语法错误，刷新发现后，分组(1.3)将自动给出标注。
     - 不支持post请求
+    - 不支持相对url（阅读支持baseUrl为1.2 bookSourceUrl的相对url）
   + 2.2 搜索地址(ruleSearchUrl)
     - 必填
-    - 如无搜索地址，则填入占位符`#`
+    - 如无搜索地址，则填入占位符`#`等
     - 形式1 https://host/?s=searchKey&p=searchPage@header:{a:b}
     - 将被解析为GET请求，User-Agent若为空则自动添加，如下。
         ```
@@ -205,13 +205,15 @@
         https://host/?s=searchKey&p=searchPage@formType=type|char=escape@header:{a:b}
         ```
     - 若不需要特殊请求头则省略 @header 内容。
-    - 请求头支持多个规则，如 @header:{key1:val1,key2:val2}。
+    - 请求头支持多个规则，如 `@header:{key1:value1,key2:value2}`。
     - 规则中可以不带 `searchKey` 和 `searchPage`。
     - 只支持单个规则，部分漫画搜名称和搜作者用的不同搜索地址，需要做成2个图源。
+    - 不支持相对url
     
 ### 3. url
   - 支持相对路径或绝对路径
   - header在此类规则下才有意义
+  - 当然，url 也属于字符串
   + 3.1 搜索结果地址(ruleSearchNoteUrl)
     - 必填
   + 3.2 目录地址(ruleChapterUrl)
@@ -219,25 +221,24 @@
   + 3.3 章节地址，或称正文地址(ruleContentUrl)
     - 必填
     - 若与目录同地址须填 `@js:""`
-    - 上述地址都支持 @header:{key1:rule1,key2:rule2}
-    - 与搜索url不同，这里的 rule 支持完整规则，需要用双引号包含起来。
+    - （尚未支持）~~上述地址都支持 @header:{key1:rule1,key2:rule2}~~
+    - ~~与搜索url不同，这里的 rule 支持完整规则，需要用双引号包含起来。~~
     - 拼接处理直接写不可靠，如有需要请使用 `@js:js内容`
   + 3.4 封面地址，2个(ruleSearchCoverUrl, ruleCoverUrl)
     - 可空
     - 可能需要考虑 referer
   
 ### 4. 字符串
-  - 存在空白压缩或空白折叠
+  - JSOUP规则下，如使用text结尾时，存在空白折叠，多个空格会被一个空格代替；如有需要，请改用html结尾
+  - 书名或章节名称取到内容为空时会导致该书或章节被忽略。
   + 4.1 书名，2个(ruleSearchName, ruleBookName)
   + 4.2 作者，2个(ruleSearchAuthor, ruleBookAuthor)
-    - 上述2个内容都存在空白压缩，包括 {}、[]、【】等全部会被舍弃。
+    - 上述2个内容都存在空白压缩，作者位置还会过滤大部分符号，如（）、 {}、[]、【】等全部会被舍弃。
     - 作为一本书的联合ID，用于判定搜索结果是否属于同一本书。
   + 4.3 最新章节，2个(ruleSearchLastChapter, ruleBookhLastChapter)
   + 4.4 简介(ruleIntroduce)
   + 4.5 章节名称(ruleChapterName)
-    - 上述3个内容都存在空白折叠，多个空格会被一个空格代替。
     - 章节名称常用正则替换规则为 `#^.*\s|^\D*(?=\d)`
-    - 书名或章节名称取到内容为空时会导致该书或章节被忽略。
     
 ### 5. 列表
   - 规则首字符使用负号(`-`)可使列表反序
@@ -250,28 +251,29 @@
   + 5.2 目录列表(ruleChapterList)
     - 章节名称、url规则从此列表往后写
   + 5.3 分类，2个(ruleSearchKind, ruleBookKind)
-    - 是的，这个不是字符串而是列表
+    - ~~是的，这个不是字符串而是列表~~
+    - ruleSearchKind为列表，ruleBookKind为字符串
   + 5.4 下一页地址，2个(ruleChapterUrlNext, ruleContentUrlNext)
-    - 是的，这个也是列表
+    - ~~是的，这个也是列表~~
+    - ruleChapterUrlNext为列表，ruleContentUrlNext为url
     - 依次向下一页地址发送请求，得到所有响应后开始下一步解析。
-    - 需保证最后一页的规则取到内容为空，如有必要，请在规则中显式返回null。
+    - 需保证最后一页的规则取到内容为空，如有必要，请在规则中显式返回`null`或`""`。
     - 支持相对路径或绝对路径
   + 5.5 正文(ruleBookContent)
     - 不支持 @put
-    - 不支持相对路径（唯一一处），可能需要补全 url
+    - ~~不支持相对路径（唯一一处），可能需要补全 url~~
+    - 异次元 1.4.8 (2019.03.28) 已支持相对url（$开始的规则放弃支持）
     
 ### 6. 图片 
   - 这部分与 url 和 list 重复，这里是补充说明
   - 独有关键字：host、prePage、thisPage
-  - host 固定为1.2内容
-  - prePage 根据3.给出的顺序计算
-  - thisPage 为规则所在页面的地址
+    - host 固定为1.2内容
+    - prePage 根据3.给出的顺序计算
+    - thisPage 为规则所在页面的地址
+    - 格式为`rule@header:{referer:thisPage}`
+  - referer不存在默认定义，不写referer时，请求头就不带referer
   + 6.1 封面地址，2个(ruleSearchCoverUrl, ruleCoverUrl)
-    - 支持相对路径或绝对路径
   + 6.2 正文(ruleBookContent)
-    - 不支持相对路径
-    - 上述内容格式均为rule@header:{referer:thisPage}
-    - header可省略，此时请求将不带referer
     
 ### 7. 通用
   + 7.1 五个连接符 `&, &&, |, ||, %`
@@ -282,8 +284,8 @@
     - 使用的方法为 replaceAll，即全局循环匹配
   + 7.3 js脚本
     - 形式为 `rule@js:js内容` 或 `rule1<js>js内容1</js>rule2<js>js内容2</js>rule3`
-    - 包含 `result` 和 `baseUrl` 2个`java.lang.string`对象，`baseUrl` 为规则所在页url（非常可靠）
-    - 由于参数以对象传递，使用`replace()`和`split()`和`match()`等方法时，js语法下需用`new String()`做类型转换，java语法下不需要转换。
+    - 包含 `result` 和 `baseUrl`，`baseUrl` 为规则所在页url（可靠）
+    - 由于String存在问题，对应`replace()`和`split()`和`match()`等方法并不可靠，可能需要`new String()、String()、toString()、`等做类型转换。
     - 返回值类型支持String（适用于全部）、Array（适用于5.），Array内容支持字符串、数字、对象（不能嵌套），可混用
         ```js
         ["str", 1 ,{a:"b"},{"c":2}]
@@ -338,9 +340,14 @@
       var variable = "@get:{key}";  // 用引号包含
       var number = @get:{key};      // 内容必须是合法的数字
       // 类型转换
-      var jsonObject = JSON.parse(json);
+      var jsonObject = JSON.parse(jsonString);
       var jsonString = JSON.stringify(jsonObject);
-      // 验证变量存在
+      
+      var strObject = new String(strExp);   // strObject类型为js中的String对象
+      
+      var str = String(strExp);             // str类型为java.lang.String，使用该方法可避免
+      var str = strExp.toString();          // `org.mozilla.javascript.ConsString cannot be cast to java.lang.String`错误
+      // 验证变量存在(不可靠)
       typeof(variable) !== undefined
       // 验证内容不为空
       !!variable
