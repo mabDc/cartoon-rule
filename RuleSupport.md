@@ -342,9 +342,7 @@
       // 类型转换
       var jsonObject = JSON.parse(jsonString);
       var jsonString = JSON.stringify(jsonObject);
-      
       var strObject = new String(strExp);   // strObject类型为js中的String对象
-      
       var str = String(strExp);             // str类型为java.lang.String，使用该方法可避免
       var str = strExp.toString();          // `org.mozilla.javascript.ConsString cannot be cast to java.lang.String`错误
       // 验证变量存在(不可靠)
