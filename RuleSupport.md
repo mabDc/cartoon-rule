@@ -22,6 +22,10 @@
   + JSOUP
     - 形式 `@css:jsoup` 或 `class.chapter@tag.a!0` 或 `class.article.0@tag.p@text`
     - 标准规范与实现库 [Package org.jsoup.select, CSS-like element selector](https://jsoup.org/apidocs/org/jsoup/select/Selector.html)
+  + 正则教程 [veedrin/horseshoe 2018-10 | Regex专题](https://github.com/veedrin/horseshoe#2018-10--regex%E4%B8%93%E9%A2%98)
+    >- [语法](https://github.com/veedrin/horseshoe/blob/master/regex/%E8%AF%AD%E6%B3%95.md)
+    >- [方法](https://github.com/veedrin/horseshoe/blob/master/regex/%E6%96%B9%E6%B3%95.md)
+    >- [引擎](https://github.com/veedrin/horseshoe/blob/master/regex/%E5%BC%95%E6%93%8E.md)
   + 自定义五个连接符：`&, &&, |, ||, %`
   + 不支持动态内容，所有的规则解析以静态加载的内容为准(阅读支持动态内容，首字符用$表示动态加载)
   + 规则形式为 `rule@header:{key:rule}@get:{key}@put:{key:rule}@js:`
@@ -283,10 +287,6 @@
     - 形式为 `#match#replace`
     - `#replace` 可省略，此时将使用默认值`""`
     - 使用的方法为 replaceAll，即全局循环匹配
-    - 正则教程 [veedrin/horseshoe 2018-10 | Regex专题](https://github.com/veedrin/horseshoe#2018-10--regex%E4%B8%93%E9%A2%98)
-      > * [语法](https://github.com/veedrin/horseshoe/blob/master/regex/%E8%AF%AD%E6%B3%95.md)
-      > * [方法](https://github.com/veedrin/horseshoe/blob/master/regex/%E6%96%B9%E6%B3%95.md)
-      > * [引擎](https://github.com/veedrin/horseshoe/blob/master/regex/%E5%BC%95%E6%93%8E.md)
   + 7.3 js脚本
     - 形式为 `rule@js:js内容` 或 `rule1<js>js内容1</js>rule2<js>js内容2</js>rule3`
     - 包含 `result` 和 `baseUrl`，`baseUrl` 为规则所在页url（可靠）
