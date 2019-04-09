@@ -2,11 +2,11 @@
 ### 从具体实现或图源写法上，分为7类
   - 1 图源描述（名称、地址、分组、登录、ua）
   - 2 搜索（发现和搜索地址）
-  - 3 url（搜索结果地址、目录地址、章节地址、2个封面地址）
+  - 3 url（搜索结果地址、目录地址、章节地址、2个封面地址、2个下一页地址、1个正文）
   - 4 字符串（2个书名、2个作者、2个最新章节、1个简介、1个章节名称）
   - 5 列表（搜索结果列表、目录列表、2个分类、2个下一页地址、1个正文）
-  - 6 图片（2个封面地址+1个正文）
-  - 7 通用（连接符、正则替换、js脚本、@put、@get）
+  - 6 ~~图片（2个封面地址+1个正文）~~
+  - 7 通用（连接符、正则替换、js脚本、@put、@get、{{js表达式}}）
   
 ### 0. 坑点
   + JSONPath 
@@ -28,9 +28,9 @@
       > [语法](https://github.com/veedrin/horseshoe/blob/master/regex/%E8%AF%AD%E6%B3%95.md)
       > [方法](https://github.com/veedrin/horseshoe/blob/master/regex/%E6%96%B9%E6%B3%95.md)
       > [引擎](https://github.com/veedrin/horseshoe/blob/master/regex/%E5%BC%95%E6%93%8E.md)
-  + 自定义五个连接符：`&, &&, |, ||, %`
+  + 自定义五个连接符：`&, &&, |, ||, %`，三种效果
   + 不支持动态内容，所有的规则解析以静态加载的内容为准(阅读支持动态内容，首字符用$表示动态加载)
-  + 规则形式为 `rule@header:{key:rule}@get:{key}@put:{key:rule}@js:`
+  + 规则形式为 `rule@header:{key:value}@get:{key}@put:{key:rule}@js:`
   + 规则解析顺序为 @put -> @get -> @header -> rule -> @js
   + 前三个@不能嵌套，位置任意，@js必须放在最后
   
@@ -183,7 +183,7 @@
     - 规则中若不含 `searchPage` 关键字，发现中持续下拉将循环。
     - 页数写法支持`{1, 2, 3, }`，发现中持续下拉将依次加载第一页、第二页、等。
     - 若为空或语法错误，刷新发现后，分组(1.3)将自动给出标注。
-    - 不支持post请求
+    - 支持 GET 或 POST ~~不支持post请求~~
     - 不支持相对url（阅读支持baseUrl为1.2 bookSourceUrl的相对url）
   + 2.2 搜索地址(ruleSearchUrl)
     - 必填
@@ -218,9 +218,16 @@
     - 不支持相对url
     
 ### 3. url
-  - 支持相对路径或绝对路径
-  - header在此类规则下才有意义
   - 当然，url 也属于字符串
+  - 全部支持相对路径或绝对路径
+  - header在此类规则下才有意义，写法同搜索字符串：`@header:{key1:value1,key2:value2}`
+  - （放弃）~~与搜索url不同，这里的 header内容为rule，支持完整规则，需要用双引号包含起来。~~
+  - 关键字：host、prePage、thisPage
+    - host 固定为1.2内容
+    - prePage 按顺序`图源地址 -> 搜索地址 -> 搜索结果地址 -> 目录地址 -> 正文地址`计算上一页地址
+    - thisPage 为规则所在页面的地址，与baseUrl一致
+    - 格式为`rule@header:{referer:thisPage}`
+  - referer不存在默认定义，不写referer时，请求头就不带referer
   + 3.1 搜索结果地址(ruleSearchNoteUrl)
     - 必填
   + 3.2 目录地址(ruleChapterUrl)
@@ -228,15 +235,19 @@
   + 3.3 章节地址，或称正文地址(ruleContentUrl)
     - 必填
     - 若与目录同地址须填 `@js:""`
-    - （尚未支持）~~上述地址都支持 @header:{key1:rule1,key2:rule2}~~
-    - ~~与搜索url不同，这里的 rule 支持完整规则，需要用双引号包含起来。~~
-    - 拼接处理直接写不可靠，如有需要请使用 `@js:js内容`
+    - 拼接处理直接写不可靠，如有需要请使用 `@js:"urlstring"+result`
   + 3.4 封面地址，2个(ruleSearchCoverUrl, ruleCoverUrl)
     - 可空
     - 可能需要考虑 referer
+  + 3.5 下一页地址，2个(ruleChapterUrlNext, ruleContentUrlNext)
+  + 3.6 正文(ruleBookContent)
+    - 可能需要考虑 referer
+    - 不支持 @put
+    - ~~不支持相对路径（唯一一处），可能需要补全 url~~
+    - 异次元 1.4.8 (2019.03.28) 已支持相对url（$开始的规则放弃支持）
   
 ### 4. 字符串
-  - JSOUP规则下，如使用text结尾时，存在空白折叠，多个空格会被一个空格代替；如有需要，请改用html结尾
+  - JSOUP规则下，以text结尾和以html结尾表现不同，请自行尝试。
   - 书名或章节名称取到内容为空时会导致该书或章节被忽略。
   + 4.1 书名，2个(ruleSearchName, ruleBookName)
   + 4.2 作者，2个(ruleSearchAuthor, ruleBookAuthor)
@@ -248,42 +259,29 @@
     - 章节名称常用正则替换规则为 `#^.*\s|^\D*(?=\d)`
     
 ### 5. 列表
-  - 规则首字符使用负号(`-`)可使列表反序
-  - ~~转字符串时，列表以`"\r\n"`连接，可用`result.split("\r\n")`分割（不可靠）~~
-  - 此处js返回值类型同时支持String和Array。
-  - 若返回 Array 类型，对于搜索结果列表和目录，应形如`[{name:"one",id:1,...},...]`，其他应形如`["type1","type2",...]` 或 `["url1","url2",...]`
-  - 若返回String类型，需用到js标签`<js>...;JSON.stringfy(list);</js>@json:$`，分类、下一页地址、正文建议直接返回 Array
+  - 此处需注意js返回值类型。
+  - 搜索结果列表和目录列表为对象数组，形如`[{name:"one",id:1,...},...]`，若使用js处理并返回String类型，需用到js标签`<js>...;JSON.stringfy(list);</js>@json:$`
+  - 分类、章节下一页地址、正文为字符串数组，js返回内容同时支持字符串或字符串数组数组，即`"str1 \n str2"`或`["str1","str2",...]`
   + 5.1 搜索结果列表(ruleSearchList)
     - 搜索结果系列规则从此列表往后写   
   + 5.2 目录列表(ruleChapterList)
     - 章节名称、url规则从此列表往后写
+    - 上述内容规则首字符使用负号(`-`)可使列表反序
   + 5.3 分类，2个(ruleSearchKind, ruleBookKind)
-    - ~~是的，这个不是字符串而是列表~~
-    - ruleSearchKind为列表，ruleBookKind为字符串
+    - ~~ruleSearchKind为列表，ruleBookKind为字符串~~
   + 5.4 下一页地址，2个(ruleChapterUrlNext, ruleContentUrlNext)
-    - ~~是的，这个也是列表~~
-    - ruleChapterUrlNext为列表，ruleContentUrlNext为url
+    - 章节下一页地址（ruleChapterUrlNext）为列表，正文下一页地址（ruleContentUrlNext）为url
     - 依次向下一页地址发送请求，得到所有响应后开始下一步解析。
     - 需保证最后一页的规则取到内容为空，如有必要，请在规则中显式返回`null`或`""`。
-    - 支持相对路径或绝对路径
   + 5.5 正文(ruleBookContent)
-    - 不支持 @put
-    - ~~不支持相对路径（唯一一处），可能需要补全 url~~
-    - 异次元 1.4.8 (2019.03.28) 已支持相对url（$开始的规则放弃支持）
-    
-### 6. 图片 
-  - 这部分与 url 和 list 重复，这里是补充说明
-  - 独有关键字：host、prePage、thisPage
-    - host 固定为1.2内容
-    - prePage 根据3.给出的顺序计算
-    - thisPage 为规则所在页面的地址
-    - 格式为`rule@header:{referer:thisPage}`
-  - referer不存在默认定义，不写referer时，请求头就不带referer
-  + 6.1 封面地址，2个(ruleSearchCoverUrl, ruleCoverUrl)
-  + 6.2 正文(ruleBookContent)
-    
+
+   
 ### 7. 通用
   + 7.1 五个连接符 `&, &&, |, ||, %`
+    - 简单规则的连接符，三种类型，格式分别为 `rule1&rule2` 或 `rule1|rule2` 或 `rule1%rule2`
+    - &, && 每个规则单独取元素再合并
+    - |, || 每个规则依次取元素，若没有内容则尝试下个规则，有内容则忽略后面规则
+    - % 同 & ，合并所有元素再重新排序，效果等同于归并
   + 7.2 正则替换
     - 只能用于 jsoup 规则后
     - 形式为 `#match#replace`
