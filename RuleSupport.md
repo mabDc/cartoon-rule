@@ -28,7 +28,7 @@
       > [语法](https://github.com/veedrin/horseshoe/blob/master/regex/%E8%AF%AD%E6%B3%95.md)
       > [方法](https://github.com/veedrin/horseshoe/blob/master/regex/%E6%96%B9%E6%B3%95.md)
       > [引擎](https://github.com/veedrin/horseshoe/blob/master/regex/%E5%BC%95%E6%93%8E.md)
-  + 自定义五个连接符：`&, &&, |, ||, %`，三种效果
+  + 自定义三种连接符：`&, &&, |, ||, %, %%`
   + 不支持动态内容，所有的规则解析以静态加载的内容为准(阅读支持动态内容，首字符用$表示动态加载)
   + 规则形式为 `rule@header:{key:value}@get:{key}@put:{key:rule}@js:`
   + 规则解析顺序为 @put -> @get -> @header -> rule -> @js
@@ -277,11 +277,12 @@
 
    
 ### 7. 通用
-  + 7.1 五个连接符 `&, &&, |, ||, %`
-    - 简单规则的连接符，三种类型，格式分别为 `rule1&rule2` 或 `rule1|rule2` 或 `rule1%rule2`
-    - &, && 每个规则单独取元素再合并
-    - |, || 每个规则依次取元素，若没有内容则尝试下个规则，有内容则忽略后面规则
-    - % 同 & ，合并所有元素再重新排序，效果等同于归并
+  + 7.1 三种连接符 `&, &&, |, ||, %, %%`
+    - 简单规则的连接符，三种类型，格式分别为 `rule1&&rule2` 或 `rule1||rule2` 或 `rule1%%rule2`
+    - & && 每个规则单独取元素再合并
+    - | || 每个规则依次取元素，若没有内容则尝试下个规则，有内容则忽略后面规则
+    - % %% 同 &，合并所有元素再重新排序，效果等同于归并，只在搜索结果列表和目录列表下有效
+    - `&& || %%`结果更可靠，`& | %`不保证结果可靠性
   + 7.2 正则替换
     - 只能用于 jsoup 规则后
     - 形式为 `#match#replace`
