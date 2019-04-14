@@ -1,4 +1,4 @@
-## 规则支持详解
+## 规则支持说明
   - 阅读书源参考 [书源制作说明](https://gedoor.github.io/MyBookshelf/sourcerule.html)
   
 ### 作如下 7 个分类 
