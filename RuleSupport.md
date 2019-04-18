@@ -88,7 +88,7 @@ XPath | JSONPath | Description
 `*` | `*` | wildcard. All objects/elements regardless their names.
 `@` | `n/a` | attribute access. JSON structures don't have attributes.
 `[]` | `[]` | subscript operator. XPath uses it to iterate over element collections and for predicates. In Javascript and JSON it is the native array operator.
-`|` | `[,]` | Union operator in XPath results in a combination of node sets. JSONPath allows alternate names or array indices as a set.
+&#124; | `[,]` | Union operator in XPath results in a combination of node sets. JSONPath allows alternate names or array indices as a set.
 `n/a` | `[start:end:step]` | array slice operator borrowed from ES4.
 `[]` | `?()` | applies a filter (script) expression.
 `n/a` | `()` | script expression, using the underlying script engine.
