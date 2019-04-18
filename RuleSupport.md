@@ -39,7 +39,9 @@
 ###  JSONPath 与 XPath 参考
 - 提供给书写时查阅，可当作使用手册，无需记住具体写法。
 - 来源是 [goessner JSONPath - XPath for JSON](https://goessner.net/articles/JsonPath/)
+
 **数据文件**
+
 ```JSON
 { "store": {
     "book": [ 
@@ -73,7 +75,9 @@
   }
 }
 ```
+
 **操作符**
+
 XPath | JSONPath | Description
 :--: | :--: | :---
 `/` | `$` | the root object/element
@@ -89,7 +93,9 @@ XPath | JSONPath | Description
 `[]` | `?()` | applies a filter (script) expression.
 `n/a` | `()` | script expression, using the underlying script engine.
 `()` | `n/a` | grouping in Xpath
+
 **示例对比**
+
 XPath | JSONPath | Result
 :--: | :--: | :---
 `/store/book/author` | `$.store.book[*].author` | the authors of all books in the store
