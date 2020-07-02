@@ -1,16 +1,3 @@
-class 矩形 {
-    constructor(长, 宽) {
-        this.长 = 长;
-        this.宽 = 宽;
-    }
-
-    面积() {
-        return this.长 * this.宽;
-    }
-}
-
-var 矩形甲 = new 矩形(4, 3);
-console.log(矩形甲.面积());
 
 // {
 //     "code": 0,
