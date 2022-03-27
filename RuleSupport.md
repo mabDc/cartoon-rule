@@ -122,77 +122,107 @@ XPath | JSONPath | Result
 
 ### js加解密
 ```js
-// 每一种编码解码都支持以下数据类型
-var string_js = "12"
-var string_js_hex = "3132"
-var byte_js = [0x31,0x32]
-var byte_js = [49,50]
-var byte_java = ycy.toBytes(string_js)
-var byte_java = ycy.toBytes(string_js_hex, "hex")
-var string_java = ycy.fromBytes(byte_java)
-var string_java_hex = ycy.fromBytes(byte_js, "Hex") // 编码成16进制 HEX字符串
-var string_java_hex = ycy.fromBytes(byte_java, "HEX") // 编码成16进制 HEX字符串
+// 支持toast
+ycy.toast("a")
+ycy.toast(1)
+ycy.toast([1])
+ycy.toast({ a: 1 })
 
-// 得到md5 十六进制 HEX 字符串
-var md5 = ycy.MD5(string_js)
-var md5 = ycy.MD5(byte_js)
-var md5 = ycy.MD5(byte_java)
-var md5 = ycy.MD5(string_java)
-var md5 = ycy.MD5(string_java_hex, "hex")
+// 太长不看的直接看这几个例子就够 
+// 需要byte二进制在方法名加ToBytes即可 如 ycy.MD5ToBytes()
+var base64 = ycy.atob(toBytes("123"))
+var base64 = ycy.atob(toBytes([0x31, 0x32, 0x33]))
+var base64 = ycy.atob(toBytes([49, 50, 51]))
+var base64 = ycy.atob(toBytes("313233", "hex"))
+var base64 = ycy.atob(toBytes("MTIz", "base64"))
+var md5 = ycy.MD5(toBytes("123"))
+var hash = ycy.SHA(toBytes("123"))
+var hash128 = ycy.encrypt("SHA-128", toBytes("123"))
 
-// 所有编码都可以使用ycy.encrypt
-// 所有解码都可以使用ycy.decrypt
-var md5 = ycy.encrypt("MD5", string_java)
-var md5 = ycy.encrypt("MD5", string_java_hex, "Hex")
+var algorithm = "AES/CBC/PKCS5Padding" // 按照java编码格式
+var data = "1234567890123456"
+var key = "1234567890123456"
+var iv = "1234567890123456"
+var 密文1 = ycy.encrypt(algorithm, toBytes(data), toBytes(key)) // 部分算法不需要偏移量 省略 iv
+var 密文2 = ycy.encrypt(algorithm, toBytes(data), toBytes(key), toBytes(iv)) // 默认需要编码到base64字符串
+var 明文 = ycy.decrypt(algorithm, toBytes(data, "base64"), toBytes(key), toBytes(iv)) // 一般需要base64解码密文
+// 例子完毕 下面是详细说明
 
-// 若是字符串 允许带encoding指定编码
-var md5 = ycy.MD5(string_js, "gbk")
-var md5 = ycy.MD5(string_js, "utf-8")
+// 以下部分是编码解码
+// 为了避免混乱，编码解码的目标和结果全是bytes
+// 所以编码前全部需要使用`toBytes`方法转为`byte[]`类型
+// 这里开始介绍`toBytes`方法，它可以接受多种类型和编码方法，以下`toBytes`结果完全相同
 
-// 一般数据是16位8bit的ascii编码，也就是128位长度
-var data = "1234567890123456";
-// 下面示例一样支持上述四种类型, 不再赘述
+// `toBytes`方法                            // -> 其他 -> java的`byte[]`类型
+var bytes = toBytes(null, null, 4)          // -> [0,0,0,0] 这是为了方便自己处理, 长度在第三个参数
+var bytes = toBytes("123")                  // -> [49,50,51]
+var bytes = toBytes("\u0031\u0032\u0033")   // -> [49,50,51]
+var bytes = toBytes([0x31, 0x32, 0x33])       // -> [49,50,51]
+var bytes = toBytes([49, 50, 51])             // -> [49,50,51]
+var bytes = toBytes("313233", "hex")         // -> [49,50,51]
+var bytes = toBytes("MTIz", "base64")        // -> [49,50,51] 解码
+// 特别的 有时候需要用 gbk编码
+var some_other_bytes = toBytes("你不是猪", "gbk") // 每个字2字节相当于8字节相当于128bit长度
 
-// 得到 md5 ByteArray
-var md5Bytes = ycy.MD5ToBytes(data)
-var md5Bytes = ycy.encryptToBytes("MD5", data)
+// `fromBytes`方法                       // `byte[]` -> 字符串
+var data = fromBytes(bytes)              // -> "123"
+var hex = fromBytes(bytes, "hex")        // -> "313233"
+var base64 = fromBytes(bytes, "base64")  // -> "MTIz" base64编码
+var str = fromBytes(some_other_bytes, "gbk")  // -> gbk解码
+
+var data = "123";
+// 通过 toBytes 得到的`byte[]`类型才可以用作以下编码方法的参数
+// 从md5编码开始 需要指出 所有编码都支持用encrypt来写
+var md5bytes = ycy.MD5ToBytes(toBytes(data))             // -> 需要手动显示转换 注意！
+var md5bytes = ycy.MD5ToBytes(toBytes(hex, "hex"))       // -> hex字符串转bytes
+var md5bytes = ycy.MD5ToBytes(toBytes(base64, "base64")) // -> base64字符串转bytes
+var md5bytes = ycy.MD5ToBytes(bytes)            // -> 已经是`byte[]`类型不需要再次转换
+var md5bytes = ycy.encryptToBytes("MD5", bytes) // 以上三种得到二进制 方便进一步处理
+var md5 = ycy.MD5(bytes)                        // 得到hex格式字符串
+var md516 = ycy.MD5(bytes).substring(8, 24)      // 得到16位md5字符串
+var md5 = ycy.encrypt("MD5", bytes)             // 可以借助`encrypt`方法
+
 // 得到 hash 值 32位 十六进制 HEX 字符串
-var sha = ycy.SHA(data)
-var sha = ycy.encrypt("SHA", data)
-var sha = ycy.encrypt("SHA-1", data)
-// 得到 hash 值 128位 十六进制 HEX 字符串
-var sha = ycy.encrypt("SHA-128", data)
-// 得到 hash 值 ByteArray
-var shaBytes = ycy.SHAToBytes(data)
+var sha = ycy.SHA(bytes)
+var sha = ycy.encrypt("SHA", bytes)
+var sha = ycy.encrypt("SHA-1", bytes)
+var sha = ycy.encrypt("SHA-128", bytes) // 得到 hash 值 128位 十六进制 HEX 字符串
+var sha = ycy.encrypt("SHA-256", bytes) // 得到 hash 值 256位 十六进制 HEX 字符串
+var shaBytes = ycy.SHAToBytes(bytes)    // 得到 hash 值 二进制byte数组
+var shaBytes = ycy.encryptToBytes("SHA-1", bytes)
 
 
 // base64 编码 得到bytes 和 字符串
-var base64Bytes = ycy.atobToBytes(data)
-var base64 = ycy.atob(data)
+var base64Bytes = ycy.btoaToBytes(bytes)
+var base64 = ycy.btoa(bytes)
 // base64 解码 得到bytes 和 字符串
-var dataBytes = ycy.btoaToBytes(base64)
-var data = ycy.btoa(base64)
+var dataBytes = ycy.atobToBytes(base64Bytes)
+var data = ycy.atob(toBytes(base64))
+
+ycy.encrypt(algorithm, toBytes(data), toBytes(key), toBytes(iv))
 
 // AES 加密
-// 方法签名为 encrypt => btoa(encryptToBytes(algorithm, key, iv, data, charset));
+// 方法签名为 encrypt => fromBytes(encryptToBytes(algorithm, data, key, iv), "base64");
 var algorithm = "AES/CBC/PKCS5Padding"
 var key = "1234567890123456"
 var keyHex = '31323334353637383930313233343536'
-var keyBytes = [49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 49, 50, 51, 52, 53, 54]
-// 特殊情形如下
-var keyHex = toBytes(keyHex, "hex")
+var keyArray = [49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 49, 50, 51, 52, 53, 54]
+// 处理方法为
+var keyBytes = toBytes(key)
+var keyBytes = toBytes(keyHex, "hex")
+var keyBytes = toBytes(keyArray)
 // iv处理同key
-var iv = "1234567890123456" // 加密算法不存在偏移量时设置iv为null，若为空字符串将补全到128bit的0 相当于"\u0000\u0000\u0000\u0000"
-var enBase64 = ycy.encrypt(algorithm, key, iv, data) // 默认是base64编码结果字符串
-var enBytes = ycy.encryptToBytes(algorithm, key, iv, data) // 得到bytes
-var enHex = fromBytes(ycy.encryptToBytes(algorithm, key, iv, data), "hex") // 得到hex字符串
+var ivBytes = toBytes("1234567890123456") // 加密算法不存在偏移量省略iv参数，若为空字符串将补全到128bit的0 相当于"\u0000\u0000\u0000\u0000"
+var enBase64 = ycy.encrypt(algorithm, toBytes(data), keyBytes) // 这里是省略iv参数 取决于算法方法algorithm参数值
+var enBase64 = ycy.encrypt(algorithm, toBytes(data), keyBytes, ivBytes) // 默认是base64编码结果字符串
+var enBytes = ycy.encryptToBytes(algorithm, toBytes(data), keyBytes, ivBytes) // 得到bytes
+var enHex = fromBytes(ycy.encryptToBytes(algorithm, toBytes(data), keyBytes, ivBytes), "hex") // 得到hex字符串
 // AES 解密
-// 方法签名为 decrypt => fromBytes(decryptToBytes(algorithm, key, iv, data, charset));
-var deBytes = ycy.decryptToBytes(algorithm, key, iv, enBase64) // 如果需要继续处理 显然结果用bytes合适
-var de = ycy.decrypt(algorithm, key, iv, enBase64)
-var de = ycy.decrypt(algorithm, key, iv, atobToBytes(enBase64))
-var de = ycy.decrypt(algorithm, key, iv, enBytes)
-var de = ycy.decrypt(algorithm, key, iv, enHex, "hex")
+// 方法签名为 decrypt => fromBytes(decryptToBytes(algorithm, data, key, iv));
+var deBytes = ycy.decryptToBytes(algorithm, enBytes, keyBytes, ivBytes ) // 如果需要继续处理 显然结果用bytes合适
+var 明文 = ycy.decrypt(algorithm, toBytes(enBase64, "base64"), keyBytes, ivBytes)       // 一般需要base64解码
+var 明文 = fromBytes(ycy.decryptToBytes(algorithm, enBytes, keyBytes, ivBytes), "gbk") // 也许需要gbk解码
+var 明文hex = fromBytes(ycy.encryptToBytes(algorithm, enBytes, keyBytes, ivBytes), "hex") // 得到hex字符串
 ```
 
 ### 1. 图源描述
