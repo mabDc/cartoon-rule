@@ -120,6 +120,81 @@ XPath | JSONPath | Result
 `//*` | `$..*` | all Elements in XML document. All members of JSON structure.
 
 
+### js加解密
+```js
+// 每一种编码解码都支持以下数据类型
+var string_js = "12"
+var string_js_hex = "3132"
+var byte_js = [0x31,0x32]
+var byte_js = [49,50]
+var byte_java = ycy.toBytes(string_js)
+var byte_java = ycy.toBytes(string_js_hex, "hex")
+var string_java = ycy.fromBytes(byte_java)
+var string_java_hex = ycy.fromBytes(byte_js, "Hex") // 编码成16进制 HEX字符串
+var string_java_hex = ycy.fromBytes(byte_java, "HEX") // 编码成16进制 HEX字符串
+
+// 得到md5 十六进制 HEX 字符串
+var md5 = ycy.MD5(string_js)
+var md5 = ycy.MD5(byte_js)
+var md5 = ycy.MD5(byte_java)
+var md5 = ycy.MD5(string_java)
+var md5 = ycy.MD5(string_java_hex, "hex")
+
+// 所有编码都可以使用ycy.encrypt
+// 所有解码都可以使用ycy.decrypt
+var md5 = ycy.encrypt("MD5", string_java)
+var md5 = ycy.encrypt("MD5", string_java_hex, "Hex")
+
+// 若是字符串 允许带encoding指定编码
+var md5 = ycy.MD5(string_js, "gbk")
+var md5 = ycy.MD5(string_js, "utf-8")
+
+// 一般数据是16位8bit的ascii编码，也就是128位长度
+var data = "1234567890123456";
+// 下面示例一样支持上述四种类型, 不再赘述
+
+// 得到 md5 ByteArray
+var md5Bytes = ycy.MD5ToBytes(data)
+var md5Bytes = ycy.encryptToBytes("MD5", data)
+// 得到 hash 值 32位 十六进制 HEX 字符串
+var sha = ycy.SHA(data)
+var sha = ycy.encrypt("SHA", data)
+var sha = ycy.encrypt("SHA-1", data)
+// 得到 hash 值 128位 十六进制 HEX 字符串
+var sha = ycy.encrypt("SHA-128", data)
+// 得到 hash 值 ByteArray
+var shaBytes = ycy.SHAToBytes(data)
+
+
+// base64 编码 得到bytes 和 字符串
+var base64Bytes = ycy.atobToBytes(data)
+var base64 = ycy.atob(data)
+// base64 解码 得到bytes 和 字符串
+var dataBytes = ycy.btoaToBytes(base64)
+var data = ycy.btoa(base64)
+
+// AES 加密
+// 方法签名为 encrypt => btoa(encryptToBytes(algorithm, key, iv, data, charset));
+var algorithm = "AES/CBC/PKCS5Padding"
+var key = "1234567890123456"
+var keyHex = '31323334353637383930313233343536'
+var keyBytes = [49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 49, 50, 51, 52, 53, 54]
+// 特殊情形如下
+var keyHex = toBytes(keyHex, "hex")
+// iv处理同key
+var iv = "1234567890123456" // 加密算法不存在偏移量时设置iv为null，若为空字符串将补全到128bit的0 相当于"\u0000\u0000\u0000\u0000"
+var enBase64 = ycy.encrypt(algorithm, key, iv, data) // 默认是base64编码结果字符串
+var enBytes = ycy.encryptToBytes(algorithm, key, iv, data) // 得到bytes
+var enHex = fromBytes(ycy.encryptToBytes(algorithm, key, iv, data), "hex") // 得到hex字符串
+// AES 解密
+// 方法签名为 decrypt => fromBytes(decryptToBytes(algorithm, key, iv, data, charset));
+var deBytes = ycy.decryptToBytes(algorithm, key, iv, enBase64) // 如果需要继续处理 显然结果用bytes合适
+var de = ycy.decrypt(algorithm, key, iv, enBase64)
+var de = ycy.decrypt(algorithm, key, iv, atobToBytes(enBase64))
+var de = ycy.decrypt(algorithm, key, iv, enBytes)
+var de = ycy.decrypt(algorithm, key, iv, enHex, "hex")
+```
+
 ### 1. 图源描述
   - 该类型内容均为简单静态字符串
   + 1.1 名称(bookSourceName)
